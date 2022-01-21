@@ -10,8 +10,19 @@ function! s:bdelete(action, bang, buffer_name)
 	endif
 
 	if getbufvar(buffer, "&modified") && empty(a:bang)
-		let error = "E89: No write since last change for buffer "
-		return s:error(error . buffer . " (add ! to override)")
+		" Handle confirm option if enabled
+		if &confirm
+			" Call edit to trigger the "Save changes to x?" prompt.
+			silent! edit
+			" If buffer is still modified the user canceled
+			" so return early
+			if getbufvar(buffer, "&modified")
+				return
+			endif
+		else
+			let error = "E89: No write since last change for buffer "
+			return s:error(error . buffer . " (add ! to override)")
+		endif
 	endif
 
 	" If the buffer is set to delete and it contains changes, we can't switch
